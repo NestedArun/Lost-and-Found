@@ -33,6 +33,8 @@ public class Item {
 
     private boolean claimRequested;
 
+    private String claimRequestedBy;
+
 
     public Item() {
     }
@@ -108,6 +110,9 @@ public class Item {
 
     public boolean isClaimRequested() { return claimRequested; }
     public void setClaimRequested(boolean claimRequested) { this.claimRequested = claimRequested; }
+
+    public String getClaimRequestedBy() { return claimRequestedBy; }
+    public void setClaimRequestedBy(String claimRequestedBy) { this.claimRequestedBy = claimRequestedBy; }
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;

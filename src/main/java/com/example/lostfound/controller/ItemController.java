@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/items")
-@CrossOrigin(origins = "*")  // allows frontend requests (use specific domain in production)
+@CrossOrigin(origins = "*")
 public class ItemController {
 
     @Autowired
@@ -85,14 +85,25 @@ public class ItemController {
             return ResponseEntity.status(404).body(Map.of("message", "Item not found"));
         }
 
-        if (!email.equals(item.getOwnerEmail())) {
-            return ResponseEntity.status(403).body(Map.of("message", "You can only request claim for your own items."));
+        if (email.equals(item.getOwnerEmail())) {
+            return ResponseEntity.status(403).body(Map.of("message", "You cannot claim your own found item."));
+        }
+
+        if (item.isClaimRequested()) {
+            return ResponseEntity.status(400).body(Map.of("message", "Claim already requested."));
+        }
+
+        if (item.isClaimed()) {
+            return ResponseEntity.status(400).body(Map.of("message", "Item already claimed."));
         }
 
         item.setClaimRequested(true);
+        item.setClaimRequestedBy(email);
         itemRepository.save(item);
+
         return ResponseEntity.ok(Map.of("message", "Claim request sent for admin approval."));
     }
+
 
     @PutMapping("/{id}/approve-claim")
     public ResponseEntity<?> approveClaim(@PathVariable Long id, @RequestParam String adminKey) {
@@ -105,12 +116,14 @@ public class ItemController {
             return ResponseEntity.status(404).body(Map.of("message", "Item not found"));
         }
 
-        item.setClaimed(true);
         item.setClaimRequested(false);
+        item.setClaimed(true);
+        item.setClaimRequestedBy(null); // Clear claim request info
         itemRepository.save(item);
 
         return ResponseEntity.ok(Map.of("message", "Claim approved successfully"));
     }
+
 
 
 }

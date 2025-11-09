@@ -176,7 +176,17 @@
           <td>${item.location}</td>
           <td>${item.contactInfo}</td>
           <td>${item.ownerEmail || "-"}</td>
-          <td>${item.claimed ? "Claimed" : "Available"}</td>
+          <td>
+              ${
+                item.claimed
+                  ? "Claimed"
+                  : item.claimRequested
+                    ? "Claim Pending"
+                    : (localStorage.getItem("email") === item.ownerEmail
+                        ? "Available (You found this)"
+                        : `<button onclick="requestClaim(${item.id})">Request Claim</button>`)
+              }
+            </td>
         `;
         tbody.appendChild(tr);
       });
