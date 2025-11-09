@@ -134,6 +134,8 @@
 
 <main>
     <h2 style="text-align:center; color:#0077b6; margin-bottom:20px;">Report Lost or Found Item</h2>
+    <input id="searchBox" type="text" placeholder="Search by name or location..." style="width:100%; padding:8px; margin-bottom:12px;" />
+
 
     <form id="itemForm">
         <input type="text" id="itemName" placeholder="Item Name" required />
@@ -173,13 +175,11 @@
 <script>
     const API = "http://localhost:8080/api/items";
 
-    async function loadItems() {
-      const res = await fetch(API);
-      const data = await res.json();
+    function renderTable(items) {
       const tbody = document.querySelector("#itemTable tbody");
       tbody.innerHTML = "";
 
-      data.forEach(item => {
+      items.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${item.id}</td>
@@ -192,11 +192,19 @@
             ${item.claimed ? "Claimed" : "Not Claimed"}
           </td>
           <td>
-            ${!item.claimed ? `<button class="claim-btn" onclick="claimItem(${item.id})">Mark Claimed</button>` : ""}
+            ${!item.claimed
+              ? `<button class="claim-btn" onclick="claimItem(${item.id})">Mark Claimed</button>`
+              : ""}
           </td>
         `;
         tbody.appendChild(row);
       });
+    }
+
+    async function loadItems() {
+      const res = await fetch(API);
+      const data = await res.json();
+      renderTable(data);
     }
 
     document.getElementById("itemForm").addEventListener("submit", async (e) => {
@@ -236,6 +244,20 @@
       await fetch(`${API}/${id}/claim`, { method: "PUT" });
       loadItems();
     }
+
+    document.getElementById("searchBox").addEventListener("input", async (e) => {
+      const q = e.target.value.toLowerCase();
+      const res = await fetch(API);
+      const items = await res.json();
+
+      const filtered = items.filter(i =>
+        (i.itemName && i.itemName.toLowerCase().includes(q)) ||
+        (i.location && i.location.toLowerCase().includes(q)) ||
+        (i.description && i.description.toLowerCase().includes(q))
+      );
+
+      renderTable(filtered);
+    });
 
     loadItems();
 </script>
