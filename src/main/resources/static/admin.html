@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin Dashboard - Lost & Found</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; background:#f5f7fa; margin:0; padding:20px; }
+    .card { background:white; border-radius:8px; padding:18px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    h1 { margin:0; color:#0077b6; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:18px; }
+    .stat { padding:12px; text-align:center; }
+    .stat h2 { margin:6px 0; color:#333; }
+    .muted { color:#666; font-size:0.9rem; }
+    .chart-wrap { margin-top:12px; }
+    .locations { margin-top:16px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { padding:8px; border-bottom:1px solid #eee; text-align:left; }
+    a.button { background:#0077b6; color:white; padding:8px 12px; border-radius:6px; text-decoration:none; }
+    footer { margin-top:26px; color:#666; font-size:0.9rem; text-align:center; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Admin Dashboard</h1>
+  <div>
+    <a href="/" class="button">Open Main Site</a>
+  </div>
+</header>
+
+<div class="card">
+  <div class="grid" id="statsGrid">
+    <div class="stat">
+      <div class="muted">Total Items</div>
+      <h2 id="total">—</h2>
+    </div>
+    <div class="stat">
+      <div class="muted">Lost</div>
+      <h2 id="lost">—</h2>
+    </div>
+    <div class="stat">
+      <div class="muted">Found</div>
+      <h2 id="found">—</h2>
+    </div>
+    <div class="stat">
+      <div class="muted">Claimed</div>
+      <h2 id="claimed">—</h2>
+    </div>
+    <div class="stat">
+      <div class="muted">Unclaimed</div>
+      <h2 id="unclaimed">—</h2>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="statsChart" width="600" height="240"></canvas>
+  </div>
+
+  <div class="locations">
+    <h3 style="margin-bottom:8px;">Top Locations</h3>
+    <table id="locTable">
+      <thead>
+      <tr><th>Location</th><th>Count</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>Admin Dashboard — read-only stats. Add auth later to protect this page.</footer>
+
+<script>
+  const STATS_API = "/api/stats";
+
+  async function loadStats() {
+    try {
+      const res = await fetch(STATS_API);
+      if (!res.ok) throw new Error("Failed to load stats: " + res.status);
+      const data = await res.json();
+
+      document.getElementById("total").textContent = data.total ?? 0;
+      document.getElementById("lost").textContent = data.lost ?? 0;
+      document.getElementById("found").textContent = data.found ?? 0;
+      document.getElementById("claimed").textContent = data.claimed ?? 0;
+      document.getElementById("unclaimed").textContent = data.unclaimed ?? 0;
+
+      renderChart(data);
+      renderTopLocations(data.topLocations || {});
+    } catch (err) {
+      console.error(err);
+      alert("Unable to load stats. Check console for details.");
+    }
+  }
+
+  function renderTopLocations(map) {
+    const tbody = document.querySelector("#locTable tbody");
+    tbody.innerHTML = "";
+    const entries = Object.entries(map);
+    if (entries.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='2'>No data</td></tr>";
+      return;
+    }
+    entries.forEach(([loc, cnt]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${loc}</td><td>${cnt}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  let chartInstance = null;
+  function renderChart(data) {
+    const ctx = document.getElementById("statsChart").getContext("2d");
+    const labels = ["Lost", "Found", "Claimed", "Unclaimed"];
+    const values = [
+      data.lost ?? 0,
+      data.found ?? 0,
+      data.claimed ?? 0,
+      data.unclaimed ?? 0
+    ];
+
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = values;
+      chartInstance.update();
+      return;
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Counts",
+          data: values,
+          backgroundColor: ["#ff7b7b","#7fbfff", "#7bd99f", "#ffd47b"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+
+  loadStats();
+
+  setInterval(loadStats, 15_000);
+</script>
+</body>
+</html>
