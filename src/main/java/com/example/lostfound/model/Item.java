@@ -29,6 +29,10 @@ public class Item {
 
     private boolean claimed = false;
 
+    private String ownerEmail;
+
+    private boolean claimRequested;
+
 
     public Item() {
     }
@@ -98,6 +102,12 @@ public class Item {
     public void setClaimed(boolean claimed) {
         this.claimed = claimed;
     }
+
+    public String getOwnerEmail() { return ownerEmail; }
+    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
+
+    public boolean isClaimRequested() { return claimRequested; }
+    public void setClaimRequested(boolean claimRequested) { this.claimRequested = claimRequested; }
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;

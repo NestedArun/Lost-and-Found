@@ -68,6 +68,17 @@
   </div>
 </div>
 
+<div class="card" style="margin-top:25px;">
+  <h3>Pending Claim Requests</h3>
+  <table id="claimTable">
+    <thead>
+    <tr><th>Item</th><th>Owner</th><th>Action</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+
 <footer>Admin Dashboard — read-only stats. Add auth later to protect this page.</footer>
 
 <script>
@@ -148,6 +159,39 @@
   loadStats();
 
   setInterval(loadStats, 15_000);
+
+
+  async function loadClaims() {
+  const res = await fetch("/api/items");
+  const items = await res.json();
+  const pending = items.filter(i => i.claimRequested && !i.claimed);
+  const tbody = document.querySelector("#claimTable tbody");
+  tbody.innerHTML = "";
+  if (pending.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='3'>No pending claims</td></tr>";
+  } else {
+    pending.forEach(i => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i.itemName}</td>
+        <td>${i.ownerEmail}</td>
+        <td><button onclick="approveClaim(${i.id})">Approve</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+async function approveClaim(id) {
+  const res = await fetch(`/api/items/${id}/approve-claim?adminKey=secretKey123`, { method: "PUT" });
+  const data = await res.json();
+  alert(data.message);
+  loadClaims();
+}
+
+loadClaims();
+setInterval(loadClaims, 20000); // refresh every 20 seconds
+
 </script>
 </body>
 </html>

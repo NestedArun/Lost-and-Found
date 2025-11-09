@@ -2,280 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Lost & Found System</title>
+    <title>Lost & Found Portal</title>
     <style>
         body {
-          font-family: "Segoe UI", Arial, sans-serif;
+          font-family: "Segoe UI", sans-serif;
           background-color: #f5f7fa;
           margin: 0;
           padding: 0;
         }
-
         header {
           background-color: #0077b6;
           color: white;
-          padding: 16px 32px;
           text-align: center;
-          font-size: 1.6rem;
+          padding: 15px;
+          font-size: 1.5rem;
           letter-spacing: 1px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
-        main {
-          max-width: 900px;
-          margin: 30px auto;
-          background: white;
-          border-radius: 10px;
-          padding: 25px 35px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        form {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px 20px;
-          margin-bottom: 30px;
-        }
-
-        form input, form select {
-          padding: 10px;
-          font-size: 1rem;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          transition: border-color 0.3s ease;
-        }
-
-        form input:focus, form select:focus {
-          border-color: #0077b6;
-          outline: none;
-        }
-
-        form button {
-          grid-column: 1 / 3;
-          background-color: #0077b6;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          padding: 10px 0;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        form button:hover {
-          background-color: #005f87;
-        }
-
-        #message {
-          grid-column: 1 / 3;
+        nav {
           text-align: center;
-          color: green;
-          font-weight: 500;
-          display: none;
+          background: white;
+          padding: 10px;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
-
+        nav a {
+          text-decoration: none;
+          color: #0077b6;
+          margin: 0 10px;
+          font-weight: 500;
+        }
+        h2 { color: #0077b6; text-align: center; margin-top: 25px; }
         table {
-          width: 100%;
+          width: 90%;
+          margin: 15px auto;
           border-collapse: collapse;
           background: white;
-          margin-top: 10px;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
         th, td {
-          border-bottom: 1px solid #ddd;
-          text-align: center;
           padding: 10px;
+          border-bottom: 1px solid #eee;
+          text-align: center;
           font-size: 0.95rem;
         }
-
         th {
-          background-color: #0077b6;
+          background: #0077b6;
           color: white;
         }
-
-        tr:hover {
-          background-color: #f1f1f1;
-        }
-
-        .claimed {
-          color: green;
-          font-weight: bold;
-        }
-
-        .not-claimed {
-          color: red;
-          font-weight: bold;
-        }
-
-        button.claim-btn {
-          background-color: #00b4d8;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          padding: 6px 10px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-
-        button.claim-btn:hover {
-          background-color: #0077b6;
-        }
-
+        tr:hover { background-color: #f1f1f1; }
+        img { border-radius: 6px; object-fit: cover; }
         footer {
           text-align: center;
           padding: 15px;
+          color: #555;
           font-size: 0.9rem;
-          color: #777;
+        }
+        button {
+          background: #0077b6;
+          border: none;
+          color: white;
+          padding: 6px 10px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+        button:hover {
+          background: #005f87;
         }
     </style>
 </head>
 <body>
-<header>Lost & Found Management System</header>
+<header>Lost & Found Management Portal</header>
 
-<main>
-    <h2 style="text-align:center; color:#0077b6; margin-bottom:20px;">Report Lost or Found Item</h2>
-    <input id="searchBox" type="text" placeholder="Search by name or location..." style="width:100%; padding:8px; margin-bottom:12px;" />
+<nav>
+    <a href="report-lost.html">Report Lost</a> |
+    <a href="report-found.html">Report Found</a> |
+    <a href="login.html" onclick="logout()">Logout</a>
+</nav>
 
+<h2>Lost Items</h2>
+<table id="lostTable">
+    <thead>
+    <tr>
+        <th>Image</th>
+        <th>Item Name</th>
+        <th>Description</th>
+        <th>Location</th>
+        <th>Contact Info</th>
+        <th>Owner</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
-    <form id="itemForm">
-        <input type="text" id="itemName" placeholder="Item Name" required />
-        <input type="text" id="description" placeholder="Description" required />
-        <input type="text" id="location" placeholder="Location" required />
-        <select id="status" required>
-            <option value="">Select Status</option>
-            <option>LOST</option>
-            <option>FOUND</option>
-        </select>
-        <input type="text" id="contactInfo" placeholder="Contact Info" required />
-        <button type="submit">Add Item</button>
-        <input type="file" id="itemImage" accept="image/*" />
-
-        <div id="message">Item added successfully!</div>
-    </form>
-
-    <h3 style="text-align:center; color:#333;">All Items</h3>
-
-    <table id="itemTable">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Image</th>
-            <th>Item</th>
-            <th>Description</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Contact</th>
-            <th>Claimed</th>
-            <th>Action</th>
-
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</main>
+<h2>Found Items</h2>
+<table id="foundTable">
+    <thead>
+    <tr>
+        <th>Image</th>
+        <th>Item Name</th>
+        <th>Description</th>
+        <th>Location</th>
+        <th>Contact Info</th>
+        <th>Finder</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
 <footer>© 2025 Lost & Found Portal | Developed with ❤️ in Java & Spring Boot</footer>
 
 <script>
     const API = "http://localhost:8080/api/items";
 
-    function renderTable(items) {
-      const tbody = document.querySelector("#itemTable tbody");
-      tbody.innerHTML = "";
-
-      items.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${item.id}</td>
-           <td>${item.imageUrl ? `<img src="${item.imageUrl}" width="60" height="60" style="object-fit:cover;border-radius:6px;">` : ""}</td>
-          <td>${item.itemName}</td>
-          <td>${item.description}</td>
-          <td>${item.location}</td>
-          <td>${item.status}</td>
-          <td>${item.contactInfo}</td>
-          <td class="${item.claimed ? 'claimed' : 'not-claimed'}">
-            ${item.claimed ? "Claimed" : "Not Claimed"}
-          </td>
-          <td>
-            ${!item.claimed
-              ? `<button class="claim-btn" onclick="claimItem(${item.id})">Mark Claimed</button>`
-              : ""}
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
     async function loadItems() {
       const res = await fetch(API);
       const data = await res.json();
-      renderTable(data);
+
+      const lostItems = data.filter(i => i.status === "LOST");
+      const foundItems = data.filter(i => i.status === "FOUND");
+
+      renderLost(lostItems);
+      renderFound(foundItems);
     }
 
-    document.getElementById("itemForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const msg = document.getElementById("message");
+    function renderLost(items) {
+      const tbody = document.querySelector("#lostTable tbody");
+      tbody.innerHTML = "";
+      if (items.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='8'>No lost items reported.</td></tr>";
+        return;
+      }
+      const userEmail = localStorage.getItem("email");
 
-  let imageUrl = null;
-  const fileInput = document.getElementById("itemImage");
-  if (fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    const fd = new FormData();
-    fd.append("file", file);
-    const uploadRes = await fetch(API + "/upload", { method: "POST", body: fd });
-    const uploadData = await uploadRes.json();
-    imageUrl = uploadData.url || null;
-  }
+      items.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.imageUrl ? `<img src="${item.imageUrl}" width="60" height="60">` : ""}</td>
+          <td>${item.itemName}</td>
+          <td>${item.description}</td>
+          <td>${item.location}</td>
+          <td>${item.contactInfo}</td>
+          <td>${item.ownerEmail || "-"}</td>
+          <td>${item.claimed ? "Claimed" : item.claimRequested ? "Pending Approval" : "Unclaimed"}</td>
+          <td>
+            ${!item.claimed && item.ownerEmail === userEmail && !item.claimRequested
+              ? `<button onclick="requestClaim(${item.id})">Request Claim</button>`
+              : ""}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-  const item = {
-    itemName: document.getElementById("itemName").value,
-    description: document.getElementById("description").value,
-    location: document.getElementById("location").value,
-    status: document.getElementById("status").value,
-    contactInfo: document.getElementById("contactInfo").value,
-    imageUrl: imageUrl
-  };
+    function renderFound(items) {
+      const tbody = document.querySelector("#foundTable tbody");
+      tbody.innerHTML = "";
+      if (items.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>No found items reported.</td></tr>";
+        return;
+      }
 
-  const response = await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(item)
-  });
+      items.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.imageUrl ? `<img src="${item.imageUrl}" width="60" height="60">` : ""}</td>
+          <td>${item.itemName}</td>
+          <td>${item.description}</td>
+          <td>${item.location}</td>
+          <td>${item.contactInfo}</td>
+          <td>${item.ownerEmail || "-"}</td>
+          <td>${item.claimed ? "Claimed" : "Available"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-  if (response.ok) {
-    msg.style.display = "block";
-    msg.style.color = "green";
-    msg.textContent = "Item added successfully!";
-    setTimeout(() => (msg.style.display = "none"), 2500);
-    e.target.reset();
-    loadItems();
-  } else {
-    msg.style.display = "block";
-    msg.style.color = "red";
-    msg.textContent = "Failed to add item!";
-    setTimeout(() => (msg.style.display = "none"), 2500);
-  }
-});
-
-
-    async function claimItem(id) {
-      await fetch(`${API}/${id}/claim`, { method: "PUT" });
+    async function requestClaim(id) {
+      const email = localStorage.getItem("email");
+      const res = await fetch(`${API}/${id}/request-claim`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      alert(data.message);
       loadItems();
     }
 
-    document.getElementById("searchBox").addEventListener("input", async (e) => {
-      const q = e.target.value.toLowerCase();
-      const res = await fetch(API);
-      const items = await res.json();
-
-      const filtered = items.filter(i =>
-        (i.itemName && i.itemName.toLowerCase().includes(q)) ||
-        (i.location && i.location.toLowerCase().includes(q)) ||
-        (i.description && i.description.toLowerCase().includes(q))
-      );
-
-      renderTable(filtered);
-    });
+    function logout() {
+      localStorage.clear();
+    }
 
     loadItems();
 </script>

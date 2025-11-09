@@ -1,17 +1,24 @@
 package com.example.lostfound.controller;
 
 import com.example.lostfound.model.Item;
+import com.example.lostfound.repository.ItemRepository;
 import com.example.lostfound.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/items")
 @CrossOrigin(origins = "*")  // allows frontend requests (use specific domain in production)
 public class ItemController {
+
+    @Autowired
+    private ItemRepository itemRepository;
+
 
     @Autowired
     private ItemService itemService;
@@ -68,4 +75,42 @@ public class ItemController {
     public List<Item> getFoundItems() {
         return itemService.getFoundItems();
     }
+
+    @PutMapping("/{id}/request-claim")
+    public ResponseEntity<?> requestClaim(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        Item item = itemRepository.findById(id).orElse(null);
+
+        if (item == null) {
+            return ResponseEntity.status(404).body(Map.of("message", "Item not found"));
+        }
+
+        if (!email.equals(item.getOwnerEmail())) {
+            return ResponseEntity.status(403).body(Map.of("message", "You can only request claim for your own items."));
+        }
+
+        item.setClaimRequested(true);
+        itemRepository.save(item);
+        return ResponseEntity.ok(Map.of("message", "Claim request sent for admin approval."));
+    }
+
+    @PutMapping("/{id}/approve-claim")
+    public ResponseEntity<?> approveClaim(@PathVariable Long id, @RequestParam String adminKey) {
+        if (!"secretKey123".equals(adminKey)) {
+            return ResponseEntity.status(403).body(Map.of("message", "Unauthorized"));
+        }
+
+        Item item = itemRepository.findById(id).orElse(null);
+        if (item == null) {
+            return ResponseEntity.status(404).body(Map.of("message", "Item not found"));
+        }
+
+        item.setClaimed(true);
+        item.setClaimRequested(false);
+        itemRepository.save(item);
+
+        return ResponseEntity.ok(Map.of("message", "Claim approved successfully"));
+    }
+
+
 }

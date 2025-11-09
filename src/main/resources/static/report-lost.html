@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Report Lost Item</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; background:#f5f7fa; padding:30px; }
+    form { background:white; padding:20px; border-radius:10px; max-width:500px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+    h2 { text-align:center; color:#0077b6; }
+    input, textarea { width:100%; margin:8px 0; padding:10px; border:1px solid #ccc; border-radius:6px; }
+    button { background:#0077b6; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; width:100%; }
+    button:hover { background:#005f87; }
+  </style>
+</head>
+<body>
+<form id="lostForm">
+  <h2>Report Lost Item</h2>
+  <input type="text" id="itemName" placeholder="Item name" required>
+  <textarea id="description" placeholder="Describe the item" required></textarea>
+  <input type="text" id="location" placeholder="Last seen location" required>
+  <input type="text" id="contactInfo" placeholder="Your contact info" required>
+  <input type="file" id="itemImage" accept="image/*">
+  <button type="submit">Report Lost</button>
+  <p id="msg" style="text-align:center;"></p>
+</form>
+
+<script>
+  const API = "http://localhost:8080/api/items";
+
+  document.getElementById("lostForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById("msg");
+    const email = localStorage.getItem("email");
+
+    // Upload image
+    let imageUrl = null;
+    const file = document.getElementById("itemImage").files[0];
+    if (file) {
+      const fd = new FormData();
+      fd.append("file", file);
+      const uploadRes = await fetch(`${API}/upload`, { method: "POST", body: fd });
+      const uploadData = await uploadRes.json();
+      imageUrl = uploadData.url;
+    }
+
+    const item = {
+      itemName: document.getElementById("itemName").value,
+      description: document.getElementById("description").value,
+      location: document.getElementById("location").value,
+      contactInfo: document.getElementById("contactInfo").value,
+      imageUrl,
+      ownerEmail: email,
+      status: "LOST"
+    };
+
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+
+    if (res.ok) {
+      msg.style.color = "green";
+      msg.textContent = "Lost item reported successfully!";
+      e.target.reset();
+    } else {
+      msg.style.color = "red";
+      msg.textContent = "Failed to report item.";
+    }
+  });
+</script>
+</body>
+</html>
