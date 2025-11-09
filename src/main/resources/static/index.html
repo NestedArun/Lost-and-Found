@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Lost & Found System</title>
+    <style>
+        body {
+          font-family: "Segoe UI", Arial, sans-serif;
+          background-color: #f5f7fa;
+          margin: 0;
+          padding: 0;
+        }
+
+        header {
+          background-color: #0077b6;
+          color: white;
+          padding: 16px 32px;
+          text-align: center;
+          font-size: 1.6rem;
+          letter-spacing: 1px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        main {
+          max-width: 900px;
+          margin: 30px auto;
+          background: white;
+          border-radius: 10px;
+          padding: 25px 35px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        form {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px 20px;
+          margin-bottom: 30px;
+        }
+
+        form input, form select {
+          padding: 10px;
+          font-size: 1rem;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          transition: border-color 0.3s ease;
+        }
+
+        form input:focus, form select:focus {
+          border-color: #0077b6;
+          outline: none;
+        }
+
+        form button {
+          grid-column: 1 / 3;
+          background-color: #0077b6;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 0;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        form button:hover {
+          background-color: #005f87;
+        }
+
+        #message {
+          grid-column: 1 / 3;
+          text-align: center;
+          color: green;
+          font-weight: 500;
+          display: none;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background: white;
+          margin-top: 10px;
+        }
+
+        th, td {
+          border-bottom: 1px solid #ddd;
+          text-align: center;
+          padding: 10px;
+          font-size: 0.95rem;
+        }
+
+        th {
+          background-color: #0077b6;
+          color: white;
+        }
+
+        tr:hover {
+          background-color: #f1f1f1;
+        }
+
+        .claimed {
+          color: green;
+          font-weight: bold;
+        }
+
+        .not-claimed {
+          color: red;
+          font-weight: bold;
+        }
+
+        button.claim-btn {
+          background-color: #00b4d8;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          padding: 6px 10px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        button.claim-btn:hover {
+          background-color: #0077b6;
+        }
+
+        footer {
+          text-align: center;
+          padding: 15px;
+          font-size: 0.9rem;
+          color: #777;
+        }
+    </style>
+</head>
+<body>
+<header>Lost & Found Management System</header>
+
+<main>
+    <h2 style="text-align:center; color:#0077b6; margin-bottom:20px;">Report Lost or Found Item</h2>
+
+    <form id="itemForm">
+        <input type="text" id="itemName" placeholder="Item Name" required />
+        <input type="text" id="description" placeholder="Description" required />
+        <input type="text" id="location" placeholder="Location" required />
+        <select id="status" required>
+            <option value="">Select Status</option>
+            <option>LOST</option>
+            <option>FOUND</option>
+        </select>
+        <input type="text" id="contactInfo" placeholder="Contact Info" required />
+        <button type="submit">Add Item</button>
+        <div id="message">Item added successfully!</div>
+    </form>
+
+    <h3 style="text-align:center; color:#333;">All Items</h3>
+
+    <table id="itemTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Contact</th>
+            <th>Claimed</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</main>
+
+<footer>© 2025 Lost & Found Portal | Developed with ❤️ in Java & Spring Boot</footer>
+
+<script>
+    const API = "http://localhost:8080/api/items";
+
+    async function loadItems() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const tbody = document.querySelector("#itemTable tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.itemName}</td>
+          <td>${item.description}</td>
+          <td>${item.location}</td>
+          <td>${item.status}</td>
+          <td>${item.contactInfo}</td>
+          <td class="${item.claimed ? 'claimed' : 'not-claimed'}">
+            ${item.claimed ? "Claimed" : "Not Claimed"}
+          </td>
+          <td>
+            ${!item.claimed ? `<button class="claim-btn" onclick="claimItem(${item.id})">Mark Claimed</button>` : ""}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById("itemForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const item = {
+        itemName: document.getElementById("itemName").value,
+        description: document.getElementById("description").value,
+        location: document.getElementById("location").value,
+        status: document.getElementById("status").value,
+        contactInfo: document.getElementById("contactInfo").value
+      };
+
+      const response = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+
+      const msg = document.getElementById("message");
+      if (response.ok) {
+        msg.style.display = "block";
+        msg.style.color = "green";
+        msg.textContent = "Item added successfully!";
+        setTimeout(() => (msg.style.display = "none"), 2500);
+        e.target.reset();
+        loadItems();
+      } else {
+        msg.style.display = "block";
+        msg.style.color = "red";
+        msg.textContent = "Failed to add item!";
+        setTimeout(() => (msg.style.display = "none"), 2500);
+      }
+    });
+
+    async function claimItem(id) {
+      await fetch(`${API}/${id}/claim`, { method: "PUT" });
+      loadItems();
+    }
+
+    loadItems();
+</script>
+</body>
+</html>
